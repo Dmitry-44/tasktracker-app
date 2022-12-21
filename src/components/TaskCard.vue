@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SuccessFilled, More, EditPen, Pointer } from "@element-plus/icons-vue";
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { ref, onMounted, computed, nextTick, watch, getCurrentInstance } from 'vue'
 import type { PropType } from 'vue'
 import SelectOptions from "./SelectOptions.vue";
 import { useTaskStore, type Task } from "@/stores/task";
@@ -111,7 +111,7 @@ const save = () => taskStore.updateTask(task.value)
                 @titleChanged="changeTitle()"
                 @deleteTask="deleteTask()"
                 @done="task.status=4"
-                 />
+                />
             </el-select>
         </div>
     </div>
@@ -219,6 +219,11 @@ const save = () => taskStore.updateTask(task.value)
         flex-direction: row
         flex-shrink: 1
         justify-content: flex-end
-
+.enter-from
+    opacity: 0
+.enter-to
+    opacity: 1
+.enter-active
+    transition: all 3s ease
 
 </style>

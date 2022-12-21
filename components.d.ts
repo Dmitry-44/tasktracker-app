@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    copy: typeof import('./src/components/forms/Login copy.vue')['default']
     DetailsWindow: typeof import('./src/components/DetailsWindow.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElButton: typeof import('element-plus/es')['ElButton']
@@ -15,6 +16,11 @@ declare module '@vue/runtime-core' {
     ElCollapseItem: typeof import('element-plus/es')['ElCollapseItem']
     ElContainer: typeof import('element-plus/es')['ElContainer']
     ElDatePicker: typeof import('element-plus/es')['ElDatePicker']
+    ElDropdown: typeof import('element-plus/es')['ElDropdown']
+    ElDropdownItem: typeof import('element-plus/es')['ElDropdownItem']
+    ElDropdownMenu: typeof import('element-plus/es')['ElDropdownMenu']
+    ElForm: typeof import('element-plus/es')['ElForm']
+    ElFormItem: typeof import('element-plus/es')['ElFormItem']
     ElHeader: typeof import('element-plus/es')['ElHeader']
     ElIcon: typeof import('element-plus/es')['ElIcon']
     ElImage: typeof import('element-plus/es')['ElImage']
@@ -30,10 +36,12 @@ declare module '@vue/runtime-core' {
     ElTag: typeof import('element-plus/es')['ElTag']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     Filters: typeof import('./src/components/Filters.vue')['default']
+    Login: typeof import('./src/components/forms/Login.vue')['default']
     MenuAside: typeof import('./src/components/MenuAside.vue')['default']
     OperationCard: typeof import('./src/components/OperationCard.vue')['default']
     OperationCollapseItem: typeof import('./src/components/OperationCollapseItem.vue')['default']
     OperationColumn: typeof import('./src/components/OperationColumn.vue')['default']
+    Register: typeof import('./src/components/forms/Register.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SelectOptions: typeof import('./src/components/SelectOptions.vue')['default']

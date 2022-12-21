@@ -4,34 +4,37 @@ import { RouterView, useRouter, useRoute } from "vue-router";
 import { useUserStore } from "@/stores/user";
 import Menu from "../components/MenuAside.vue";
 import { useInterfaceStore } from "@/stores/interface";
-// import { useOperationStore, type Operation } from "@/stores/operation";
-// import { useSitesStore } from "@/stores/sites";
-// import { usePipeStore } from "@/stores/pipe";
+import router from "@/router";
+import { newConnect } from "@/plugins/ws";
 
 const isCollapse = ref(true);
 const InterfaceStore = useInterfaceStore()
-// const route = useRoute();
-// const router = useRouter();
 const UserStore = useUserStore();
-// const userInfo = computed(() => UserStore.getUser);
-// const logout = () => UserStore.logout();
-// const operationsStore = useOperationStore()
-// const loader = computed(() => UserStore.getLoader);
+let User = computed(()=> UserStore.getUser)
+let isAuth = computed(()=> UserStore.getIsAuth) 
 let LOADING = computed(()=>InterfaceStore.getLoader)
-onBeforeMount(async() => {
-  InterfaceStore.startLoading()
-  await UserStore.checkAuth()
-  InterfaceStore.stopLoading()
-  // loading.value=true
-  // const query = Object.assign({}, route.query);
-  // delete query.auth;
-  // router.replace({ query });
 
-  // const operations = operationsStore.fetchOperations()
-  // const pipes = usePipeStore().fetchPipes()
-  // const sites = useSitesStore().fetchSites()
-  // Promise.allSettled([operations, pipes, sites]).then(() => loading.value=false)
+onBeforeMount(async() => {
+  if(!isAuth.value) {
+    InterfaceStore.startLoading()
+    UserStore.checkAuth()
+    .then(isAuth=> {
+      console.info('isAuth', isAuth)
+      console.log('check auth')
+      if(!isAuth) {
+        console.log('check auth')
+        router.push('/login')
+      }
+    })
+    .finally(() => InterfaceStore.stopLoading())
+  }
+  newConnect()
 });
+
+const logout = () => {
+  UserStore.Logout()
+  router.push("/login")
+}
 
 
 </script>
@@ -58,30 +61,27 @@ onBeforeMount(async() => {
             <!-- <el-image src="/favicon.png" class="ml-2 logo-image" /> -->
             <span class="logo-text">Таск-трекер</span>
           </div>
-          <div class="hidden-md-and-up menu-block-mobile">
+          <!-- <div class="hidden-md-and-up menu-block-mobile">
             <Menu
               class="menu-element-mobile"
               :is-collapse="isCollapse"
               :is-horizontal="true"
             />
-          </div>
-          <!-- <div>
-            <span class="hidden-xs-only">{{ userInfo?.fio }}</span>
-            <span class="hidden-md-and-up">{{
-              userInfo?.fio?.split(" ")[0]
-            }}</span>
+          </div> -->
+          <div v-if="isAuth">
+            <span class="hidden-xs-only">{{ User?.username }}</span>
             <el-icon
               class="user-block"
-              @click="logout"
+              @click="logout()"
               style="margin-left: 8px"
             >
               <SwitchButton />
             </el-icon>
-          </div> -->
+          </div>
         </el-container>
       </el-header>
       <el-container>
-        <el-aside class="hidden-sm-and-down">
+        <el-aside v-if="isAuth" class="hidden-sm-and-down">
           <Menu :is-collapse="isCollapse" />
         </el-aside>
         <el-container>
@@ -91,7 +91,7 @@ onBeforeMount(async() => {
             v-loading="LOADING" 
             >
           </div>
-          <el-main v-else class="content" >
+          <el-main v-else class="content">
             <RouterView />
           </el-main>
         </el-container>

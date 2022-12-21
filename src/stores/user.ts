@@ -1,17 +1,31 @@
+import { axiosClient } from './../plugins/axios';
 import { defineStore } from "pinia";
 import type { SimpleObject } from "./interface";
 import { envConfig } from "../plugins/envConfig";
-import { axiosClient } from "../plugins/axios";
+import { getBearerToken, clearBearerToken } from '@/plugins/Cookies';
 
-type User = {
+export interface User  {
   id: number;
-  fio: string;
-  rights: SimpleObject;
-} | null;
+  username: string;
+  name: string;
+  email: string,
+}
+
+export interface LoginUserDto  {
+	username: string,
+  password: string,
+}
+
+export interface RegisterUserDto  {
+	username: string,
+  password: string,
+  email: string,
+  name: string,
+}
 
 interface State {
   is_auth: boolean;
-  user: User;
+  user: User | null;
 }
 
 export const useUserStore = defineStore({
@@ -21,30 +35,70 @@ export const useUserStore = defineStore({
     is_auth: false,
   }),
   getters: {
-    getRights: (state): SimpleObject => state?.user?.rights || {},
-    getUser: (state): User => state.user,
+    getUser: (state): User|null => state.user,
+    getIsAuth: (state): boolean => state.is_auth
   },
   actions: {
-    logout(): Promise<boolean> {
+    async checkAuth(): Promise<boolean> {
       return axiosClient
-        .get(`${envConfig.API_URL}/auth/logout`)
-        .then(() => true);
-    },
-    checkAuth(): Promise<boolean> {
-      return axiosClient
-        .post(`${envConfig.API_URL}auth`)
+        .post(`${envConfig.API_URL}/auth`)
         .then((resp) => {
-          console.log('resp', resp)
-          this.is_auth = true;
-          this.user = resp.data.auth;
-          return true;
+          if(resp.status === 200) {
+            this.is_auth = true;
+            this.user = resp.data.user;
+            return true;
+          } else if(resp.status === 401) {
+            this.is_auth = false;
+            this.user = null;
+            return false
+          }
+          return false
         })
         .catch((err) => {
-          console.log('err')
-          this.is_auth = true;
+          console.log('server error')
+          this.is_auth = false;
           this.user = null;
           return false;
         });
+    },
+    async Logup(user: LoginUserDto): Promise<boolean> {
+      return axiosClient
+        .post(`${envConfig.API_URL}/logup`, user)
+        .then((resp) => {
+          this.is_auth = true;
+          this.user = resp.data.user;
+          const newToken = getBearerToken()
+          axiosClient.defaults.headers.common['Authorization'] = 'Bearer '+newToken;
+          return true;
+        })
+        .catch((err) => {
+          this.is_auth = false;
+          this.user = null;
+          return false;
+        });
+    },
+    async Login(user: LoginUserDto): Promise<boolean> {
+      return axiosClient
+        .post(`${envConfig.API_URL}/login`, user)
+        .then((resp) => {
+          this.is_auth = true;
+          this.user = resp.data.user;
+          const newToken = getBearerToken()
+          axiosClient.defaults.headers.common['Authorization'] = 'Bearer '+newToken;
+          return true;
+        })
+        .catch((err) => {
+          this.is_auth = false;
+          this.user = null;
+          return false;
+        });
+    },
+    Logout():void {
+      clearBearerToken()
+      this.is_auth = false;
+      this.user = null;
+      const newToken = getBearerToken()
+      axiosClient.defaults.headers.common['Authorization'] = 'Bearer '+newToken;
     },
   },
 });

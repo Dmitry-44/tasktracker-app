@@ -9,11 +9,16 @@ const router = createRouter({
         name: "Главная",
         component: DefaultLayout,
         children: [
-            {
-              path: "/",
-              name: "Доска",
-              component: () => import("../pages/Kanban/Index.vue"),
-            },
+          {
+            path: "/",
+            name: "Доска",
+            component: () => import("../pages/Kanban/Index.vue"),
+          },
+          {
+            path: "/login",
+            name: "login",
+            component: () => import("../pages/Login/Index.vue"),
+          },
         ]
        } 
     ]

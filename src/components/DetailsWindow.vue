@@ -93,9 +93,9 @@ watch(task, (newVal, oldVal)=>{
                     <!-- <el-tooltip v-if="!isReadonlyTask" class="item" effect="dark" content="Взять задачу" placement="top-start">
                         <el-button :icon="Pointer"></el-button>
                     </el-tooltip> -->
-                    <el-tooltip class="item" effect="dark" content="Открыть в новой вкладке" placement="top-start">
+                    <!-- <el-tooltip class="item" effect="dark" content="Открыть в новой вкладке" placement="top-start">
                         <el-button :icon="Notification" @click.stop="openInNewTab()"></el-button>
-                    </el-tooltip>
+                    </el-tooltip> -->
                 </template>
                 <el-tooltip class="item" effect="dark" content="Закрыть" placement="top-start">
                     <el-button class="close-btn" :icon="Close" @click.stop="toggleDetailsWindow(false),setActiveTask(null),toggleCreatingTaskProcess(false)"></el-button>

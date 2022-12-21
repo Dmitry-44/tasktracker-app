@@ -17,7 +17,7 @@ const props = defineProps({
     require: true,
   }
 });
-const emit = defineEmits(["titleChanged"]);
+const emit = defineEmits(['titleChanged', 'deleteTask', 'done'])
 const task = ref(props.task)
 const readonlyTask = computed(()=> task.value.status===4)
 const store = useTaskStore()
@@ -57,7 +57,7 @@ const copyTaskLink = () => {
         <el-icon><View /></el-icon>
         <span style="margin-left:10px;">Открыть сведения</span>
     </el-option>
-    <el-option @click="$emit('deleteTask')">
+    <el-option value="" @click="emit('deleteTask')">
         <el-icon color="#F56C6C"><Delete /></el-icon>
         <span style="margin-left:10px;color:#F56C6C">Удалить задачу</span>
     </el-option>
@@ -65,7 +65,7 @@ const copyTaskLink = () => {
         <el-icon><Link /></el-icon>
         <span style="margin-left:10px;">Копировать ссылку на задачу</span>
     </el-option> -->
-    <el-option @click="$emit('done')">
+    <el-option value="" @click="emit('done')">
         <el-icon><SuccessFilled /></el-icon>
         <span style="margin-left:10px;">{{task.status===4?'Выполнено':'Не выполнено'}}</span>
     </el-option>

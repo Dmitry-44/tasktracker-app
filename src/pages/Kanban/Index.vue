@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { Plus } from "@element-plus/icons-vue";
+import { Plus, Top, Bottom } from "@element-plus/icons-vue";
 import TaskCard from "@/components/TaskCard.vue";
 import { useTaskStore, type Task } from "@/stores/task";
 import { useInterfaceStore, type FilterPayload, } from "@/stores/interface";
 import DetailsWindow from "@/components/DetailsWindow.vue";
-import { ref, computed, onBeforeUnmount } from "vue";
+import { ref, computed, onBeforeUnmount, onMounted } from "vue";
 import Filters from "@/components/Filters.vue";
-import { ElMessage } from "element-plus";
-// import { errVueHandler } from "../../plugins/errorResponser";
+
 
 const taskStore = useTaskStore()
 const interfaceStore = useInterfaceStore()
 const $filters = ref<typeof Filters|null>(null)
 const abortController = new AbortController();
 const abortSignal = abortController.signal
+
 
 //GETTERS
 let tasks = computed(()=>taskStore.getList)
@@ -76,6 +76,10 @@ const filterUpdate = async(payload: FilterPayload) => {
 }
 
 //HOOKS
+onMounted(()=> {
+    console.log('index mounted')
+    // sendMessage()
+})
 onBeforeUnmount(() => abortController.abort());
 
 
@@ -139,6 +143,18 @@ const dropHandler = (ev: DragEvent, area: number) => {
             >
                 <div class="title">
                     <h3>К исполнению</h3>
+                    <el-dropdown>
+                        <span class="el-dropdown-link">Фильтр<el-icon class="el-icon--right"><arrow-down /></el-icon>
+                        </span>
+                        <template #dropdown>
+                        <el-dropdown-menu>
+                            <el-dropdown-item :icon="Top">Приоритет</el-dropdown-item>
+                            <el-dropdown-item :icon="Bottom">Приоритет</el-dropdown-item>
+                            <el-dropdown-item :icon="Top">Статус</el-dropdown-item>
+                            <el-dropdown-item :icon="Bottom">Статус</el-dropdown-item>
+                        </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
                     <el-tooltip class="item" effect="dark" content="Добавить задачу" placement="top-start">
                         <el-button size="small" :icon="Plus" @click.stop="addTask()" />
                     </el-tooltip>

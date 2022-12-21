@@ -39,7 +39,7 @@ type State = {
     loading: boolean,
 }
 
-export type {SimpleObject, FilterPayload, ResultWithMessage}
+export type {SimpleObject, FilterPayload, ResultWithMessage, serverResponseStatus}
 
 export const useInterfaceStore = defineStore({
     id: "interface",

@@ -194,7 +194,7 @@ defineExpose({
                     collapse-tags
                     placeholder="Любой приоритет" 
                     class="ml-auto my-1"
-                    style="width: 240px"
+                    style="width: 100%"
                     >
                         <el-option
                         v-for="item in PRIORITY_OPTIONS"
@@ -205,43 +205,6 @@ defineExpose({
                         <span>{{item.value}}</span>
                         </el-option>
                     </el-select>
-
-                    <!-- <el-select 
-                    v-model="smi_direction" 
-                    multiple 
-                    collapse-tags
-                    placeholder="Любое направление" 
-                    class="ml-auto my-1"
-                    style="width: 240px"
-                    >
-                        <el-option
-                        v-for="item in DIRECTIONS_OPTIONS"
-                        :key="item.name"
-                        :label="item.name"
-                        :value="item.id"
-                        >
-                        <span>{{item.name}}</span>
-                        </el-option>
-                    </el-select> -->
-                    
-                    <!-- Select only for smi center???? -->
-                    <!-- <el-select 
-                    v-model="site_ids" 
-                    multiple 
-                    collapse-tags
-                    placeholder="Все сайты" 
-                    class="ml-auto my-1"
-                    style="width: 240px"
-                    >
-                        <el-option
-                        v-for="item in SITES_OPTIONS"
-                        :key="item.url"
-                        :label="item.url"
-                        :value="item.id"
-                        >
-                        <span>{{item.url}}</span>
-                        </el-option>
-                    </el-select> -->
                     <div class="my-2">
                         <el-button type="success" class="ml-3" @click="applyFilters()">Применить</el-button>
                         <el-button type="warning" class="ml-3" @click="resetFilters()">Сбросить</el-button>
@@ -265,6 +228,7 @@ defineExpose({
     top: 50px
     right: 0
     z-index: 50
+    min-width: 300px
     &-close-btn
         position: absolute
         right: 5px

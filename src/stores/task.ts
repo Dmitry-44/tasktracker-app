@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { axiosClient } from "../plugins/axios";
 import { envConfig } from "../plugins/envConfig";
-import { type FilterPayload, type SimpleObject, type ResultWithMessage, useInterfaceStore } from "./interface";
+import { type FilterPayload, type SimpleObject, type ResultWithMessage, useInterfaceStore, serverResponseStatus } from "./interface";
 
 
 interface Task {
@@ -57,6 +57,11 @@ interface State {
   filterBase: FilterPayload,
   filterVersion: string
 }
+
+enum status  {
+  ok = "ok"
+}
+
 
 export type { Task, ActiveTask, Event };
 
@@ -124,12 +129,21 @@ export const useTaskStore = defineStore({
     setNewTask(payload: Task):void {
       this.tasks.push(payload)
     },
+    updateTaskById(payload: Task): void {
+      const index = this.tasks.findIndex(task=> task.id===payload.id)
+      if(index>=0) {
+        this.tasks[index]=payload
+      }
+    },
     deleteTaskFromStateById(id: number):void {
       this.tasks=this.tasks.filter(task=>task.id!=id)
+      if(this.activeTask.id===id) {
+        this.setActiveTask(null)
+      }
     },
     fetchTasksList(filterPayload?: FilterPayload|Partial<FilterPayload>, signal?: AbortSignal): Promise<boolean|string> {
       return axiosClient
-        .get(`${envConfig.API_URL}api/v1/tasks/`,{signal})
+        .get(`${envConfig.API_URL}/api/v1/tasks/`,{signal})
         .then((resp) => {
           const respdata: ResultWithMessage = resp.data;
           this.setTasksList(respdata.data.tasks);
@@ -151,14 +165,14 @@ export const useTaskStore = defineStore({
     },
     createTask(payload: Partial<Task>): Promise<any> {
       return axiosClient
-        .post(`${envConfig.API_URL}api/v1/tasks/`, payload)
+        .post(`${envConfig.API_URL}/api/v1/tasks/`, payload)
         .then((resp) => {
           const respdata: ResultWithMessage = resp.data
           if (
             Object.prototype.hasOwnProperty.call(respdata, "status") &&
             respdata.status === "ok"
           ) {
-            this.setNewTask(respdata.data as Task)
+            // this.setNewTask(respdata.data as Task)
             return true;
           } else {
             return respdata.errorMessage || false;
@@ -167,7 +181,7 @@ export const useTaskStore = defineStore({
         // .catch((e) => errRequestHandler(e));
     },
     updateTask(payload: Partial<Task>): Promise<boolean|string> {
-      const url = `${envConfig.API_URL}api/v1/tasks/${payload.id}`
+      const url = `${envConfig.API_URL}/api/v1/tasks/${payload.id}`
       return axiosClient
         .put(url, payload)
         .then((resp) => {
@@ -184,7 +198,7 @@ export const useTaskStore = defineStore({
         // .catch((e) => errRequestHandler(e));
     },
     deleteTask(id: number): Promise<boolean|string> {
-      const url = `${envConfig.API_URL}api/v1/tasks/${id}`
+      const url = `${envConfig.API_URL}/api/v1/tasks/${id}`
       return axiosClient
         .delete(url)
         .then((resp) => {
