@@ -40,6 +40,9 @@ export const useUserStore = defineStore({
   },
   actions: {
     async checkAuth(): Promise<boolean> {
+      const newToken = getBearerToken()
+      console.log('newToken', newToken)
+      axiosClient.defaults.headers.common['Authorization'] = 'Bearer '+newToken;
       return axiosClient
         .post(`${envConfig.API_URL}/auth`)
         .then((resp) => {

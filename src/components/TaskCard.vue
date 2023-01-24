@@ -127,7 +127,6 @@ const save = () => taskStore.updateTask(task.value)
     overflow: hidden
     position: relative
     overflow: hidden
-    // width: 280px
     cursor: pointer
     margin-bottom: 8px
     transition-duration: 200ms
@@ -148,7 +147,6 @@ const save = () => taskStore.updateTask(task.value)
         overflow-y: auto
         position: relative
         & .title
-            // text-indent: 24px
             display: block
             overflow-wrap: break-word
             font-size: 14px

@@ -1,44 +1,39 @@
 <script setup lang="ts">
 import { useTaskStore } from '@/stores/task';
 import { useInterfaceStore } from '@/stores/interface';
-import { Close, Pointer, Notification, SuccessFilled } from "@element-plus/icons-vue";
+import { Close } from "@element-plus/icons-vue";
 import { computed } from '@vue/reactivity';
-import { nextTick, onBeforeMount, onMounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { nextTick, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
-// import { errVueHandler } from '@/plugins/errorResponser';
 
+//CONSTANTS
 const taskStore = useTaskStore()
 const interfaceStore = useInterfaceStore()
-// const pipeStore = usePipeStore()
-const router = useRouter()
+
 //GETTERS
 const detailWindowIsOpen = computed(()=>interfaceStore.getDetailWindowIsOpen) 
 const task = computed(()=>taskStore.getActiveTask) 
 const isReadonlyTask = computed(()=> task.value.status===4)
 const isCreatingTaskProcess = computed(()=>interfaceStore.isCreatingTaskProcess)
+const taskWasChanged = computed(()=> {
+    const updatedData = JSON.parse(JSON.stringify(task.value))
+    return oldContent.value != JSON.stringify(updatedData)
+})
 const PRIORITY_OPTIONS = taskStore.getPriorityOptions
 const STATUS_OPTIONS = taskStore.getStatusOptions
+
+//VARIABLES
+let LOADING = ref(false)
+let oldContent = ref('')
+const titleInput = ref<HTMLInputElement|null>(null)
 
 //ACTIONS
 const toggleDetailsWindow = interfaceStore.toggleDetailsWindow
 const setActiveTask = taskStore.setActiveTask
 const toggleCreatingTaskProcess = interfaceStore.toggleCreatingTaskProcess
 
-const openInNewTab = () => {
-    let routeData = router.resolve({path: `/tasks/${task.value.id}`})
-    window.open(routeData.href, '_blank');
-}
-
-const LOADING = ref(false)
-let oldContent = ref('')
-const wasChanged = computed(()=> {
-    const updatedData = JSON.parse(JSON.stringify(task.value))
-    return oldContent.value != JSON.stringify(updatedData)
-})
-const titleInput = ref<HTMLInputElement|any>(null)
-
-const save = async() => {
+//METHODS
+const saveTask = async() => {
     LOADING.value=true
     const msg = ElMessage({
         message: "Сохраняю задачу..",
@@ -53,7 +48,6 @@ const save = async() => {
         res = taskStore.createTask(task.value)
     }
     res.then(res=>{
-        console.log('res', res)
         if (res) {
             ElMessage({
                 message: "Операция выполнена успешно!",
@@ -62,22 +56,36 @@ const save = async() => {
                 duration: 1500,
                 showClose: true,
             });
+            oldContent.value=JSON.stringify(task.value)
+        } else {
+            ElMessage({
+                message: "Ошибка при выполнении операции!",
+                type: "error",
+                center: true,
+                duration: 1500,
+                showClose: true,
+            });
         }
-        oldContent.value=JSON.stringify(task.value)
     })
     .finally(()=>{
         LOADING.value=false
         msg.close()
     })
-    
 }
 
+const closeButtonHandler = () => {
+    toggleDetailsWindow(false)
+    setActiveTask(null)
+    toggleCreatingTaskProcess(false)
+}
+
+//HOOKS
 watch(task, (newVal, oldVal)=>{
     if(oldVal.id != newVal.id) {
         oldContent.value=JSON.stringify({...task.value})
         if(isCreatingTaskProcess.value){
             nextTick(()=>{
-                titleInput.value.focus()
+                titleInput?.value?.focus()
             })
         }
     }
@@ -85,20 +93,12 @@ watch(task, (newVal, oldVal)=>{
 
 </script>
 <template>
-    <div :class="['details', detailWindowIsOpen?'active':'']" @click.stop>
+    <div :class="['details', {active: detailWindowIsOpen}]" @click.stop>
         <div class="header">
             <div class="actions">
-                <el-button :loading="LOADING" :disabled="!wasChanged" type="success" @click="save()">Сохранить</el-button>
-                <template v-if="!isCreatingTaskProcess">
-                    <!-- <el-tooltip v-if="!isReadonlyTask" class="item" effect="dark" content="Взять задачу" placement="top-start">
-                        <el-button :icon="Pointer"></el-button>
-                    </el-tooltip> -->
-                    <!-- <el-tooltip class="item" effect="dark" content="Открыть в новой вкладке" placement="top-start">
-                        <el-button :icon="Notification" @click.stop="openInNewTab()"></el-button>
-                    </el-tooltip> -->
-                </template>
+                <el-button :loading="LOADING" :disabled="!taskWasChanged" type="success" @click="saveTask">Сохранить</el-button>
                 <el-tooltip class="item" effect="dark" content="Закрыть" placement="top-start">
-                    <el-button class="close-btn" :icon="Close" @click.stop="toggleDetailsWindow(false),setActiveTask(null),toggleCreatingTaskProcess(false)"></el-button>
+                    <el-button class="close-btn" :icon="Close" @click.stop="closeButtonHandler"></el-button>
                 </el-tooltip>
             </div>
         </div>
@@ -107,7 +107,6 @@ watch(task, (newVal, oldVal)=>{
                 <input 
                 v-model="task.title"
                 :disabled="isReadonlyTask"
-                class="title-input" 
                 placeholder="Ввести название задачи"
                 ref="titleInput"
                 >
@@ -131,7 +130,7 @@ watch(task, (newVal, oldVal)=>{
                 <div class="row" v-if="!isCreatingTaskProcess">
                     <div class="left">Статус</div>
                     <div class="right">
-                        <el-select v-model="task.status" :disabled="isReadonlyTask" clearable placeholder="Статус" style="box-shadow:none">
+                        <el-select v-model="task.status" :disabled="isReadonlyTask" clearable placeholder="Статус">
                             <el-option
                             v-for="item in STATUS_OPTIONS"
                             :key="item.value"
@@ -165,7 +164,6 @@ watch(task, (newVal, oldVal)=>{
 .details
     box-shadow: 0 0 0 1px #edeae9, 0 5px 20px 0 rgba(109, 110, 111, 0.08)
     background-color: #fff
-    // border-top: 1px solid #edeae9
     display: flex
     flex-direction: column
     right: 0
@@ -178,7 +176,6 @@ watch(task, (newVal, oldVal)=>{
     visibility: hidden
     &.active
         width: min(700px, 60%)
-        // transform: translateX(-100px)
         visibility: visible
 .details .header
     height: 50px
@@ -260,6 +257,5 @@ watch(task, (newVal, oldVal)=>{
 
 .el-collapse .row
     margin-bottom: .5rem
-
 
 </style>

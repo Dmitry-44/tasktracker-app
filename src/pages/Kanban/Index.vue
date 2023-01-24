@@ -78,6 +78,7 @@ const filterUpdate = async(payload: FilterPayload) => {
 //HOOKS
 onMounted(()=> {
     console.log('index mounted')
+    fetchTasksList()
     // sendMessage()
 })
 onBeforeUnmount(() => abortController.abort());
@@ -126,12 +127,12 @@ const dropHandler = (ev: DragEvent, area: number) => {
 <template>
     <div class="kanbar-wrapper">
         <div class="menu-top">
-            <div class="filters-wrapper">
+            <!-- <div class="filters-wrapper">
                 <Filters 
                 @update="filterUpdate($event)"
                 ref="$filters"
                 />
-            </div>
+            </div> -->
         </div>
         <div class="kanban-background" @click.stop="clickOutsideCards()">
             <DetailsWindow />

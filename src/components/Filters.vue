@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { useTaskStore } from '@/stores/task';
-// import { useOperationStore, type Operation } from '@/stores/operation';
-// import { useSitesStore } from "@/stores/sites";
 import type { FilterPayload } from '@/stores/interface';
 import { Close } from '@element-plus/icons-vue';
 import { ref, computed, watch, nextTick, onMounted, onBeforeMount } from 'vue';
@@ -13,24 +11,20 @@ const emit = defineEmits<{
 }>()
 
 //CONSTANTS
-// const sitesStore = useSitesStore()
 const taskStore = useTaskStore()
-// const operationStore = useOperationStore()
 const userStore = useUserStore()
-const PRIORITY_OPTIONS = computed(() => taskStore.getPriorityOptions)
-// const SITES_OPTIONS = computed(() => sitesStore.getList)
-// const operationsById = computed(()=> operationStore.getOperationsById)
-// const DIRECTIONS_OPTIONS = computed(() => operationsById?.value[4]?.params.directionArr || [])
-const filterVersion = computed(()=> taskStore.getFilterVersion)
-const user = computed(()=> userStore.getUser)
 
 //VARIABLES
+let PRIORITY_OPTIONS = computed(() => taskStore.getPriorityOptions)
+let filterVersion = computed(()=> taskStore.getFilterVersion)
+let user = computed(()=> userStore.getUser)
 let filterIsOpen = ref(false)
 let priority = ref([])
-let smi_direction = ref([])
-let site_ids = ref([])
+let smiDirection = ref([])
+let siteList = ref([])
 let search1 = ref(null)
 let search2 = ref(null)
+let localStorageKey = computed(()=> `tasks_filter_settings_${filterVersion.value}_${user?.value?.id}`)
 
 const date = ref([new Date(new Date().getTime() - 86400 * 1000).toLocaleDateString('en-CA'), new Date().toISOString().substr(0, 10)])
 let dateInt = computed(()=> {
@@ -45,11 +39,10 @@ let dateInt = computed(()=> {
 let filterPayload = computed(()=>{
     return {
         filter: {
-            pipe_id: null,
             priority: priority.value,
             ...dateInt.value,
-            smi_direction: smi_direction.value,
-            site_ids: site_ids.value, 
+            smiDirection: smiDirection.value,
+            siteList: siteList.value, 
             search1: search1.value,
             search2: search2.value,
         },
@@ -61,15 +54,6 @@ let filterPayload = computed(()=>{
     }
 })
 
-watch(
-    () => dateInt,
-    () => {
-        nextTick(()=> {
-            emit('update', filterPayload.value)
-        })
-    },
-    {deep: true}
-)
 
 //METHODS
 const setPersonalFilters = () => {
@@ -78,24 +62,22 @@ const setPersonalFilters = () => {
     delete data!.filter!.search2
     delete data!.filter!.dts
     delete data!.filter!.dtf
-    localStorage.setItem(`tasks_filter_settings_${filterVersion.value}_${user?.value?.id}`, JSON.stringify(data))
+    localStorage.setItem(localStorageKey.value, JSON.stringify(data))
     
 }
 const getPersonalFilters = () => {
-    let personalFiltersString = localStorage.getItem(`tasks_filter_settings_${filterVersion.value}_${user?.value?.id}`)
+    let personalFiltersString = localStorage.getItem(localStorageKey.value)
     if (!personalFiltersString) {
         setPersonalFilters()
     } else {
         let personalFilters = JSON.parse(personalFiltersString)
         priority.value=personalFilters.filter.priority
-        site_ids.value=personalFilters.filter.site_ids
-        smi_direction.value=personalFilters.filter.smi_direction
+        siteList.value=personalFilters.filter.siteList
+        smiDirection.value=personalFilters.filter.smiDirection
     }
 }
 const applyFilters = () => {
-    if(search1.value===''){
-        search1.value=null
-    }
+    search1.value = search1.value==='' ? null : search1.value
     emit('update', filterPayload.value)
     setPersonalFilters()
     closeFilters()
@@ -104,8 +86,8 @@ const resetFilters = () => {
     search1.value=null
     search2.value=null
     priority.value=[]
-    smi_direction.value=[]
-    site_ids.value=[] 
+    smiDirection.value=[]
+    siteList.value=[] 
 }
 const closeFilters = () => {
     filterIsOpen.value=false
@@ -122,34 +104,44 @@ onMounted(()=> {
     applyFilters()
 })
 
+watch(
+    () => dateInt,
+    () => {
+        nextTick(()=> {
+            emit('update', filterPayload.value)
+        })
+    },
+    {deep: true}
+)
+
 //DATEPICKER DEFAULT SETTINGS
 const shortcuts = [
     {
-    text: 'Сегодня',
-    value: () => {
-        const end = new Date()
-        const start = new Date()
-        start.setTime(start.getTime() - 3600 * 1000 * 24 * 1)
-        return [start, end]
-    },
-    },
-    {
-    text: 'Неделя',
-    value: () => {
-        const end = new Date()
-        const start = new Date()
-        start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
-        return [start, end]
-    },
+        text: 'Сегодня',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 1)
+            return [start, end]
+        },
     },
     {
-    text: 'Месяц',
-    value: () => {
-        const end = new Date()
-        const start = new Date()
-        start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
-        return [start, end]
+        text: 'Неделя',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+            return [start, end]
+        },
     },
+    {
+        text: 'Месяц',
+        value: () => {
+            const end = new Date()
+            const start = new Date()
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
+            return [start, end]
+        },
     },
 ]
 
@@ -175,7 +167,8 @@ defineExpose({
         />
         <div class="dropdown">
             <el-button type="info" class="mx-4" @click="filterIsOpen=true">
-            Фильтры<el-icon class="ml-1"><ArrowDown /></el-icon>
+                Фильтры
+                <el-icon class="ml-1"><ArrowDown /></el-icon>
             </el-button>
             <el-card v-if="filterIsOpen" class="box-card filters_card">
                 <template #header>
